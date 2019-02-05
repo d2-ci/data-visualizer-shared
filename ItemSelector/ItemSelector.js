@@ -13,6 +13,8 @@ import PropTypes from 'prop-types';
 import UnselectedItems from './UnselectedItems';
 import SelectedItems from './SelectedItems';
 
+import './styles/ItemSelector.css';
+
 var ItemSelector = function (_Component) {
     _inherits(ItemSelector, _Component);
 

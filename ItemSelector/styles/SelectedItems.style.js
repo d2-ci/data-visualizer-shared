@@ -29,6 +29,7 @@ export var styles = {
         margin: '0px'
     },
     deselectButton: {
-        left: '76px'
+        margin: '0 auto',
+        display: 'block'
     }
 };

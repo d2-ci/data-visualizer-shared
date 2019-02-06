@@ -4,7 +4,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import PropTypes from 'prop-types';
 import i18n from '@dhis2/d2-i18n';
 import throttle from 'lodash-es/throttle';
@@ -68,7 +68,7 @@ export var UnselectedItems = function (_Component) {
             return React.createElement(
                 'li',
                 {
-                    className: 'dimension-item',
+                    className: 'item-selector-item',
                     key: dataDim.id,
                     onDoubleClick: function onDoubleClick() {
                         return _this.onDoubleClickItem(dataDim.id);
@@ -85,7 +85,7 @@ export var UnselectedItems = function (_Component) {
         };
 
         _this.requestMoreItems = throttle(function () {
-            var node = _this.ulRef.current;
+            var node = _this.scrolElRef.current;
 
             if (node) {
                 var bottom = node.scrollHeight - node.scrollTop === node.clientHeight;
@@ -101,30 +101,35 @@ export var UnselectedItems = function (_Component) {
             });
 
             return React.createElement(
-                'div',
-                {
-                    className: _this.props.className + '-dialog',
-                    onScroll: _this.requestMoreItems
-                },
+                Fragment,
+                null,
                 React.createElement(
-                    'ul',
-                    { ref: _this.ulRef, className: _this.props.className + '-list' },
-                    listItems
+                    'div',
+                    {
+                        ref: _this.scrolElRef,
+                        onScroll: _this.requestMoreItems,
+                        style: styles.unselectedItems
+                    },
+                    React.createElement(
+                        'ul',
+                        { className: 'item-selector-list' },
+                        listItems
+                    )
                 ),
-                React.createElement(AssignButton, {
-                    className: _this.props.className + '-arrow-forward-button',
-                    onClick: _this.onSelectClick,
-                    iconType: 'arrowForward'
-                }),
                 React.createElement(SelectAllButton, {
                     style: styles.selectButton,
                     onClick: _this.onSelectAllClick,
                     label: i18n.t('Select All')
+                }),
+                React.createElement(AssignButton, {
+                    className: 'item-selector-arrow-forward-button',
+                    onClick: _this.onSelectClick,
+                    iconType: 'arrowForward'
                 })
             );
         };
 
-        _this.ulRef = React.createRef();
+        _this.scrolElRef = React.createRef();
         return _this;
     }
 
@@ -132,9 +137,12 @@ export var UnselectedItems = function (_Component) {
 }(Component);
 
 UnselectedItems.propTypes = {
-    items: PropTypes.array.isRequired,
+    items: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        name: PropTypes.string.isRequired
+    })).isRequired,
     onSelect: PropTypes.func.isRequired,
-    filterText: PropTypes.string.isRequired,
+    filterText: PropTypes.string,
     requestMoreItems: PropTypes.func
 };
 

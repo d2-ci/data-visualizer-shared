@@ -173,7 +173,7 @@ export var SelectedItems = function (_Component) {
                         return React.createElement(
                             'li',
                             _extends({
-                                className: 'dimension-item',
+                                className: 'item-selector-item',
                                 id: id,
                                 onDoubleClick: function onDoubleClick() {
                                     return _this.onRemoveSelected(id);
@@ -203,7 +203,7 @@ export var SelectedItems = function (_Component) {
                         return React.createElement(
                             'li',
                             _extends({
-                                className: 'dimension-item',
+                                className: 'item-selector-item',
                                 id: cloneId
                             }, provided.draggableProps, provided.dragHandleProps, {
                                 ref: provided.innerRef
@@ -268,7 +268,7 @@ export var SelectedItems = function (_Component) {
                     )
                 ),
                 React.createElement(UnAssignButton, {
-                    className: _this.props.className + '-arrow-back-button',
+                    className: 'item-selector-arrow-back-button',
                     onClick: _this.onDeselectClick,
                     iconType: 'arrowBack'
                 }),

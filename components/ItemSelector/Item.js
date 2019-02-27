@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { colors } from '../../modules/colors';
 import RemoveDimensionButton from './buttons/RemoveDimensionButton';
 import ItemIcon from './ItemIcon';
-import { colors } from '../colors';
 import { styles } from './styles/Item.style';
 
 var Icon = function Icon(_ref) {
@@ -17,9 +17,9 @@ var Icon = function Icon(_ref) {
     return React.createElement(ItemIcon, { backgroundColor: bgColor });
 };
 
-var onClickWrapper = function onClickWrapper(id, index, onItemClick) {
+var onClickWrapper = function onClickWrapper(id, index, onClick) {
     return function (event) {
-        return onItemClick(event.metaKey || event.ctrlKey, event.shiftKey, index, id);
+        return onClick(event.metaKey || event.ctrlKey, event.shiftKey, index, id);
     };
 };
 
@@ -29,12 +29,12 @@ export var Item = function Item(_ref2) {
         id = _ref2.id,
         index = _ref2.index,
         onRemoveItem = _ref2.onRemoveItem,
-        onItemClick = _ref2.onItemClick,
+        onClick = _ref2.onClick,
         name = _ref2.name,
-        classNames = _ref2.classNames;
+        isGhost = _ref2.isGhost;
 
     var selectedState = selected ? 'selected' : 'unselected';
-    var divClassName = [selectedState + '-list-item'].concat(classNames).join(' ');
+    var divClassName = [selectedState + '-list-item'].concat(isGhost ? 'ghost' : '').join(' ');
 
     return React.createElement(
         'div',
@@ -42,7 +42,7 @@ export var Item = function Item(_ref2) {
             'data-test': 'dimension-item-' + id,
             style: highlighted ? styles.highlightedItem : {},
             className: divClassName,
-            onClick: onClickWrapper(id, index, onItemClick)
+            onClick: onClickWrapper(id, index, onClick)
         },
         React.createElement(Icon, { selected: selected, highlighted: highlighted }),
         React.createElement(
@@ -66,7 +66,7 @@ Item.defualtProps = {
     onRemoveItem: function onRemoveItem() {
         return null;
     },
-    onItemClick: function onItemClick() {
+    onClick: function onClick() {
         return null;
     }
 };
@@ -76,9 +76,10 @@ Item.propTypes = {
     index: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
     highlighted: PropTypes.bool.isRequired,
-    onItemClick: PropTypes.func,
+    onClick: PropTypes.func,
     onRemoveItem: PropTypes.func,
-    selected: PropTypes.bool
+    selected: PropTypes.bool,
+    isGhost: PropTypes.bool
 };
 
 export default Item;

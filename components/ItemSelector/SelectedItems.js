@@ -43,6 +43,8 @@ var ItemsList = function ItemsList(_ref) {
     );
 };
 
+var CLONE_INDEX = 9999; // a high number to not influence the actual item list
+
 export var SelectedItems = function (_Component) {
     _inherits(SelectedItems, _Component);
 
@@ -57,17 +59,17 @@ export var SelectedItems = function (_Component) {
             args[_key] = arguments[_key];
         }
 
-        return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref2 = SelectedItems.__proto__ || Object.getPrototypeOf(SelectedItems)).call.apply(_ref2, [this].concat(args))), _this), _this.state = { highlighted: [], lastClickedIndex: 0, draggingId: null }, _this.onDeselectClick = function () {
+        return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref2 = SelectedItems.__proto__ || Object.getPrototypeOf(SelectedItems)).call.apply(_ref2, [this].concat(args))), _this), _this.state = { highlighted: [], lastClickedIndex: 0, draggingId: null }, _this.onDeselectHighlighted = function () {
             _this.props.onDeselect(_this.state.highlighted);
             _this.setState({ highlighted: [] });
-        }, _this.onRemoveSelected = function (id) {
-            var highlighted = _this.state.highlighted.filter(function (dataDimId) {
-                return dataDimId !== id;
+        }, _this.onDeselectOne = function (id) {
+            var highlighted = _this.state.highlighted.filter(function (highlightedId) {
+                return highlightedId !== id;
             });
 
             _this.props.onDeselect([id]);
             _this.setState({ highlighted: highlighted });
-        }, _this.onDeselectAllClick = function () {
+        }, _this.onDeselectAll = function () {
             _this.props.onDeselect(_this.props.items.map(function (item) {
                 return item.id;
             }));
@@ -95,23 +97,8 @@ export var SelectedItems = function (_Component) {
             }
 
             _this.setState({ draggingId: start.draggableId });
-        }, _this.onDragEnd = function (result) {
-            var destination = result.destination,
-                source = result.source,
-                draggableId = result.draggableId;
-
-
-            _this.setState({ draggingId: null });
-
-            if (destination === null) {
-                return;
-            }
-
-            if (destination.draggableId === source.draggableId && destination.index === source.index) {
-                return;
-            }
-
-            var newList = Array.from(_this.props.items.map(function (item) {
+        }, _this.reorderList = function (destination, source, draggableId) {
+            var list = Array.from(_this.props.items.map(function (item) {
                 return item.id;
             }));
 
@@ -136,109 +123,119 @@ export var SelectedItems = function (_Component) {
                 }
 
                 indexedItemsToMove.forEach(function (indexed) {
-                    var idx = newList.indexOf(indexed.item);
-                    newList.splice(idx, 1);
+                    var idx = list.indexOf(indexed.item);
+                    list.splice(idx, 1);
                 });
 
                 indexedItemsToMove.forEach(function (indexed, i) {
-                    newList.splice(destinationIndex + i, 0, indexed.item);
+                    list.splice(destinationIndex + i, 0, indexed.item);
                 });
             } else {
-                newList.splice(source.index, 1);
-                newList.splice(destination.index, 0, draggableId);
+                list.splice(source.index, 1);
+                list.splice(destination.index, 0, draggableId);
             }
+
+            return list;
+        }, _this.onDragEnd = function (_ref3) {
+            var destination = _ref3.destination,
+                source = _ref3.source,
+                draggableId = _ref3.draggableId;
+
+            _this.setState({ draggingId: null });
+
+            if (destination === null) {
+                return;
+            }
+
+            if (destination.draggableId === source.draggableId && destination.index === source.index) {
+                return;
+            }
+
+            var newList = _this.reorderList(destination, source, draggableId);
 
             _this.props.onReorder(newList);
-        }, _this.renderListItem = function (_ref3, index) {
-            var id = _ref3.id,
-                name = _ref3.name,
-                clone = _ref3.clone;
+        }, _this.renderListItem = function (_ref4, index) {
+            var id = _ref4.id,
+                name = _ref4.name;
+            return React.createElement(
+                Draggable,
+                { draggableId: id, index: index, key: id },
+                function (provided, snapshot) {
+                    var isDraggedItem = snapshot.isDragging && _this.state.highlighted.length > 1 && _this.state.highlighted.includes(_this.state.draggingId);
 
-            if (!clone) {
-                return React.createElement(
-                    Draggable,
-                    { draggableId: id, index: index, key: id },
-                    function (provided, snapshot) {
-                        var isItemBeingDragged = snapshot.isDragging && _this.state.highlighted.length > 1 && _this.state.highlighted.includes(_this.state.draggingId);
+                    var isGhost = _this.state.highlighted.includes(id) && Boolean(_this.state.draggingId) && _this.state.draggingId !== id;
 
-                        var isGhosting = _this.state.highlighted.includes(id) && Boolean(_this.state.draggingId) && _this.state.draggingId !== id;
+                    var itemText = isDraggedItem ? _this.state.highlighted.length + ' items' : name;
 
-                        var itemText = isItemBeingDragged ? _this.state.highlighted.length + ' items' : name;
+                    return React.createElement(
+                        'li',
+                        _extends({
+                            className: 'item-selector-item',
+                            id: id,
+                            onDoubleClick: function onDoubleClick() {
+                                return _this.onDeselectOne(id);
+                            }
+                        }, provided.draggableProps, provided.dragHandleProps, {
+                            ref: provided.innerRef
+                        }),
+                        React.createElement(Item, {
+                            id: id,
+                            index: index,
+                            name: itemText,
+                            highlighted: !!_this.state.highlighted.includes(id),
+                            onRemoveItem: _this.onDeselectOne,
+                            onClick: _this.toggleHighlight,
+                            selected: true,
+                            isGhost: isGhost
+                        })
+                    );
+                }
+            );
+        }, _this.renderCloneItem = function (_ref5, index) {
+            var id = _ref5.id,
+                name = _ref5.name;
 
-                        var ghostClassname = isGhosting ? 'ghost' : '';
-                        var draggingItemClassname = isItemBeingDragged ? 'dragging-item' : '';
+            var cloneId = id + '-clone';
+            return React.createElement(
+                Draggable,
+                { draggableId: cloneId, index: index, key: cloneId },
+                function (provided) {
+                    return React.createElement(
+                        'li',
+                        _extends({
+                            className: 'item-selector-item',
+                            id: cloneId
+                        }, provided.draggableProps, provided.dragHandleProps, {
+                            ref: provided.innerRef
+                        }),
+                        React.createElement(Item, {
+                            id: cloneId,
+                            index: CLONE_INDEX,
+                            name: name,
+                            highlighted: !!_this.state.highlighted.includes(id),
+                            selected: true,
+                            isGhost: true
+                        })
+                    );
+                }
+            );
+        }, _this.getItemListWithClone = function () {
+            var list = [];
 
-                        var classNames = [ghostClassname, draggingItemClassname].join(' ');
+            _this.props.items.forEach(function (item) {
+                list.push(item);
 
-                        return React.createElement(
-                            'li',
-                            _extends({
-                                className: 'item-selector-item',
-                                id: id,
-                                onDoubleClick: function onDoubleClick() {
-                                    return _this.onRemoveSelected(id);
-                                }
-                            }, provided.draggableProps, provided.dragHandleProps, {
-                                ref: provided.innerRef
-                            }),
-                            React.createElement(Item, {
-                                id: id,
-                                index: index,
-                                name: itemText,
-                                highlighted: !!_this.state.highlighted.includes(id),
-                                onItemClick: _this.toggleHighlight,
-                                onRemoveItem: _this.onRemoveSelected,
-                                selected: true,
-                                classNames: classNames
-                            })
-                        );
-                    }
-                );
-            } else {
-                var cloneId = id + '-clone';
-                return React.createElement(
-                    Draggable,
-                    { draggableId: cloneId, index: index, key: cloneId },
-                    function (provided) {
-                        return React.createElement(
-                            'li',
-                            _extends({
-                                className: 'item-selector-item',
-                                id: cloneId
-                            }, provided.draggableProps, provided.dragHandleProps, {
-                                ref: provided.innerRef
-                            }),
-                            React.createElement(Item, {
-                                id: cloneId,
-                                index: 9999,
-                                name: name,
-                                highlighted: !!_this.state.highlighted.includes(id),
-                                selected: true,
-                                classNames: 'ghost'
-                            })
-                        );
-                    }
-                );
-            }
+                var isDraggedItem = _this.isMultiDrag(_this.state.draggingId) && _this.state.draggingId === item.id;
+
+                if (isDraggedItem) {
+                    list.push({ id: item.id, name: item.name, clone: true });
+                }
+            });
+
+            return list;
         }, _this.render = function () {
-            var itemList = function itemList() {
-                var list = [];
-
-                _this.props.items.forEach(function (item) {
-                    list.push(item);
-
-                    var itemIsBeingDragged = _this.isMultiDrag(_this.state.draggingId) && _this.state.draggingId === item.id;
-
-                    if (itemIsBeingDragged) {
-                        list.push({ id: item.id, name: item.name, clone: true });
-                    }
-                });
-
-                return list;
-            };
-
-            var dataDimensions = itemList().map(function (itemObj, index) {
-                return _this.renderListItem(itemObj, index);
+            var dimensions = _this.getItemListWithClone().map(function (item, i) {
+                return item.clone ? _this.renderCloneItem(item, i) : _this.renderListItem(item, i);
             });
 
             return React.createElement(
@@ -261,7 +258,7 @@ export var SelectedItems = function (_Component) {
                                     styles: styles,
                                     innerRef: provided.innerRef
                                 }, provided.droppableProps),
-                                dataDimensions,
+                                dimensions,
                                 provided.placeholder
                             );
                         }
@@ -269,12 +266,12 @@ export var SelectedItems = function (_Component) {
                 ),
                 React.createElement(UnAssignButton, {
                     className: 'item-selector-arrow-back-button',
-                    onClick: _this.onDeselectClick,
+                    onClick: _this.onDeselectHighlighted,
                     iconType: 'arrowBack'
                 }),
                 React.createElement(DeselectAllButton, {
                     style: styles.deselectButton,
-                    onClick: _this.onDeselectAllClick,
+                    onClick: _this.onDeselectAll,
                     label: i18n.t('Deselect All')
                 })
             );

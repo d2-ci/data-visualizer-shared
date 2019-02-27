@@ -79,7 +79,7 @@ export var UnselectedItems = function (_Component) {
                     index: index,
                     name: dataDim.name,
                     highlighted: !!_this.state.highlighted.includes(dataDim.id),
-                    onItemClick: _this.toggleHighlight
+                    onClick: _this.toggleHighlight
                 })
             );
         };

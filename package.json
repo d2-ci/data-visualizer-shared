@@ -1,16 +1,18 @@
 {
-  "name": "analytics-shared-components",
+  "name": "analytics-shared",
   "version": "32.0.2",
-  "description": "analytics shared components",
+  "description": "analytics shared components and modules",
   "author": "Jen Jones Arnesen <jennifer@dhis2.org>",
   "license": "BSD-3-Clause",
+  "private": false,
   "main": "./index.js",
   "scripts": {
     "clean": "rm -rf ./build/*",
     "build": "npm run clean && NODE_ENV=production npm run build:es && NODE_ENV=production npm run build:css",
     "build:es": "babel src --out-dir build --copy-files --verbose",
-    "build:css": "cp ./src/ItemSelector/ItemSelector.css ./build/",
-    "test": "jest --config=../../jest.config.js"
+    "build:css": "cp ./src/components/ItemSelector/ItemSelector.css ./build/",
+    "test": "jest --config=../../jest.config.js --watch",
+    "watch": "npm run build --watch"
   },
   "browserslist": [
     ">0.5%",
@@ -28,6 +30,5 @@
     "react": "^16.7.0",
     "react-beautiful-dnd": "^10.0.4",
     "react-dom": "^16.7.0"
-  },
-  "private": false
+  }
 }
